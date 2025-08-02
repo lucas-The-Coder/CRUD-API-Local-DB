@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CRUD API Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+      }
+      button {
+        margin: 0.5rem;
+      }
+      input {
+        margin: 0.5rem;
+      }
+      pre {
+        background: #f0f0f0;
+        padding: 1rem;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>My CRUD API</h1>
+
+    <h2>Add Item</h2>
+    <input type="text" id="newItem" placeholder="Enter item name" />
+    <button onclick="createItem()">Add</button>
+
+    <h2>Items</h2>
+    <button onclick="getItems()">Refresh List</button>
+    <div id="items"></div>
+
+    <script>
+      const API = "/items";
+
+      async function getItems() {
+        const res = await fetch(API);
+        const data = await res.json();
+        document.getElementById("items").innerHTML = data
+          .map(
+            (item) => `
+          <pre>
+            ${JSON.stringify(item)}
+            <button onclick="deleteItem(${item.id})">Delete</button>
+            <button onclick="updateItem(${item.id})">Update</button>
+          </pre>
+        `
+          )
+          .join("");
+      }
+
+      async function createItem() {
+        const name = document.getElementById("newItem").value;
+        if (!name) return alert("Enter a name!");
+        await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        getItems();
+      }
+
+      async function deleteItem(id) {
+        await fetch(`${API}/${id}`, { method: "DELETE" });
+        getItems();
+      }
+
+      async function updateItem(id) {
+        const newName = prompt("Enter new name:");
+        if (!newName) return;
+        await fetch(`${API}/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName }),
+        });
+        getItems();
+      }
+
+      // Load items
+      getItems();
+    </script>
+  </body>
+</html>
